@@ -9,7 +9,6 @@ defmodule ElixirAle.Mixfile do
      description: description(),
      package: package(),
      source_url: "https://github.com/fhunleth/elixir_ale",
-     compilers: [:elixir_make] ++ Mix.compilers,
      make_clean: ["clean"],
      docs: [extras: ["README.md"]],
      aliases: ["docs": ["docs", &copy_images/1]],
