@@ -70,7 +70,8 @@ defmodule Gpio do
 
   # gen_server callbacks
   def init([pin, pin_direction]) do
-    state = %State{pin: pin, direction: pin_direction}
+    state = %State{port: Agent.start_link(fn -> :rand.uniform(2)-1 end),
+                      pin: pin, direction: pin_direction}
     {:ok, state}
   end
 
@@ -98,13 +99,13 @@ defmodule Gpio do
   end
 
   defp call_port(state, command, arguments) do
-    msg = {command, arguments}
-    send state.port, {self, {:command, :erlang.term_to_binary(msg)}}
-    receive do
-      {_, {:data, <<?r,response::binary>>}} ->
-        {:ok, :erlang.binary_to_term(response)}
-    after
-      1_000 -> :timedout
+    case {command, arguments} do
+      {:read, _args} ->
+        {:ok, Agent.get(state.port, fn(n) -> n end) }
+      {:write, value} ->
+        {:ok, Agent.get_and_update(state.port, fn(_n) -> {value, value} end)}
+      {:set_int, direction} ->
+        {:ok, Agent.get(state.port, fn(n) -> n end) }
     end
   end
 
