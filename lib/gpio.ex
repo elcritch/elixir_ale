@@ -70,14 +70,7 @@ defmodule Gpio do
 
   # gen_server callbacks
   def init([pin, pin_direction]) do
-    executable = :code.priv_dir(:elixir_ale) ++ '/ale'
-    port = Port.open({:spawn_executable, executable},
-    [{:args, ["gpio", "#{pin}", Atom.to_string(pin_direction)]},
-      {:packet, 2},
-      :use_stdio,
-      :binary,
-      :exit_status])
-    state = %State{port: port, pin: pin, direction: pin_direction}
+    state = %State{pin: pin, direction: pin_direction}
     {:ok, state}
   end
 
@@ -100,9 +93,8 @@ defmodule Gpio do
     {:stop, :normal, state}
   end
 
-  def handle_info({_, {:data, <<?n, message::binary>>}}, state) do
-    msg = :erlang.binary_to_term(message)
-    handle_port(msg, state)
+  def handle_call({:gpio_interrupt, condition}, _from, state) do
+    handle_port({:gpio_interrupt, condition}, state)
   end
 
   defp call_port(state, command, arguments) do
